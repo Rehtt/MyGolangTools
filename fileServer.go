@@ -9,15 +9,19 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
-	_ "github.com/go-sql-driver/mysql"
 )
+
+//your files host path
+fileHost := "/mnt/d" 
+
+func main(){
+	http.HandleFunc("/file", file)
+	http.Handle("/files/",http.StripPrefix("/files/",http.FileServer(http.Dir(fileHost+"/"))))
+	http.ListenAndServe(":9090", nil)
+}
 
 func file(writer http.ResponseWriter, request *http.Request) {
 	request.ParseForm()
-  //文件根目录
-	fileHost := "/mnt/thunder/file"
-  //访问记录存入数据库
 	db, _ := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/IpData")
 
 	if len(request.Form) == 0 {
@@ -35,19 +39,24 @@ func file(writer http.ResponseWriter, request *http.Request) {
 			showDir(fileHost, file, db, writer, request)
 		} else {
 
-			op, err := os.Open(fileHost + file)
-			if err != nil {
-				fmt.Fprintln(writer, err.Error())
+			//op, err := os.Open(fileHost + file)
+			//if err != nil {
+			//	fmt.Fprintln(writer, err.Error())
+			//}
+			//defer op.Close()
+			_,true:=os.Stat(fileHost+file)
+			if true !=nil{
+				fmt.Fprint(writer,404)
+				return
 			}
-			defer op.Close()
-
 			var number int
 			var name string
 			db.QueryRow("select * from fileIP where name = ?;", file).Scan(&number, &name)
 			res, _ := db.Prepare("update fileIP set number = ? where name=?;")
 			number += 1
 			res.Exec(number, name)
-			http.ServeContent(writer, request, file, time.Now(), op)
+			http.Redirect(writer,request,"/files/"+file,http.StatusFound)
+			//http.ServeContent(writer, request, file, time.Now(), op)
 		}
 	}
 	db.Close()
