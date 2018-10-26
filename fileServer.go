@@ -24,8 +24,8 @@ func main(){
 	go setTime(time.Hour*12, run)	//设置循环定时任务
 	
 	http.HandleFunc("/file", file)
-	http.Handle("/Dfd4Fsgoeekcd9flsfkfsd/", http.StripPrefix("/Dfd4Fsgoeekcd9flsfkfsd/", http.FileServer(http.Dir(fileHost))))
-	http.Handle("/Dfd4Fsgoeekcd2flsfkfsd/", http.StripPrefix("/Dfd4Fsgoeekcd2flsfkfsd/", http.FileServer(http.Dir(fileHost_b))))
+	http.Handle("/Dfd4Fsgoeekcd9flsfkfsd/", http.StripPrefix("/file1/", http.FileServer(http.Dir(fileHost))))
+	http.Handle("/Dfd4Fsgoeekcd2flsfkfsd/", http.StripPrefix("/file2/", http.FileServer(http.Dir(fileHost_b))))
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -76,9 +76,9 @@ func file(writer http.ResponseWriter, request *http.Request) {
 			number += 1
 			res.Exec(number, name)
 			if filee[0] == "2" {
-				http.Redirect(writer, request, "/Dfd4Fsgoeekcd9flsfkfsd/"+file, http.StatusFound)
+				http.Redirect(writer, request, "/file1/"+file, http.StatusFound)
 			} else {
-				http.Redirect(writer, request, "/Dfd4Fsgoeekcd2flsfkfsd/"+file, http.StatusFound)
+				http.Redirect(writer, request, "/file2/"+file, http.StatusFound)
 			}
 
 			//http.ServeContent(writer, request, file, time.Now(), op)
