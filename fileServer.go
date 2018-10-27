@@ -24,8 +24,8 @@ func main(){
 	go setTime(time.Hour*12, run)	//设置循环定时任务
 	
 	http.HandleFunc("/file", file)
-	http.Handle("/Dfd4Fsgoeekcd9flsfkfsd/", http.StripPrefix("/file1/", http.FileServer(http.Dir(fileHost))))
-	http.Handle("/Dfd4Fsgoeekcd2flsfkfsd/", http.StripPrefix("/file2/", http.FileServer(http.Dir(fileHost_b))))
+	http.Handle("/file1/", http.StripPrefix("/file1/", http.FileServer(http.Dir(fileHost))))
+	http.Handle("/file2/", http.StripPrefix("/file2/", http.FileServer(http.Dir(fileHost_b))))
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -48,8 +48,14 @@ func file(writer http.ResponseWriter, request *http.Request) {
 				break
 			}
 		}
+
+		filee := strings.Split(file, "//")
 		if strings.Split(file, "/")[len(strings.Split(file, "/"))-1] == "" {
-			showDir(fileHost, file, db, writer, request)
+			if filee[0] == "2" {
+				showDir(fileHost_b, "/"+filee[1], db, writer, request)
+			} else {
+				showDir(fileHost, file, db, writer, request)
+			}
 		} else {
 
 			//op, err := os.Open(fileHost + file)
@@ -57,10 +63,9 @@ func file(writer http.ResponseWriter, request *http.Request) {
 			//	fmt.Fprintln(writer, err.Error())
 			//}
 			//defer op.Close()
-			filee := strings.Split(file, "//")
 			var true error
 			if filee[0] == "2" {
-				_, true = os.Stat(fileHost_b + file)
+				_, true = os.Stat(fileHost_b + "/" + filee[1])
 			} else {
 				_, true = os.Stat(fileHost + file)
 			}
@@ -75,10 +80,10 @@ func file(writer http.ResponseWriter, request *http.Request) {
 			res, _ := db.Prepare("update fileIP set number = ? where name=?;")
 			number += 1
 			res.Exec(number, name)
-			if filee[0] == "2" {
+			if filee[0] != "2" {
 				http.Redirect(writer, request, "/file1/"+file, http.StatusFound)
 			} else {
-				http.Redirect(writer, request, "/file2/"+file, http.StatusFound)
+				http.Redirect(writer, request, "/file2/"+"/"+filee[1], http.StatusFound)
 			}
 
 			//http.ServeContent(writer, request, file, time.Now(), op)
@@ -86,6 +91,7 @@ func file(writer http.ResponseWriter, request *http.Request) {
 	}
 	db.Close()
 }
+
 
 func showDir(path string, dir string, db *sql.DB, writer http.ResponseWriter, request *http.Request) {
 	dirs, err := ioutil.ReadDir(path + dir)
@@ -149,6 +155,7 @@ func showDir(path string, dir string, db *sql.DB, writer http.ResponseWriter, re
 	}
 }
 
+
 //移动热度文件，将下载数量低于平均值的文件移动到B盘，高于平均值的文件移动到A盘
 func backup() {
 	var fileList []string
@@ -186,40 +193,50 @@ func backup() {
 		res.Scan(&file, &number)
 		name := strings.Split(file, "//")
 		if name[0] == "2" {
-			file2 = append(file2, name[1])
+			file2 = append(file2, "/"+name[1])
 			file2_n = append(file2_n, number)
 			i, _ := strconv.Atoi(number)
 			file2_nn += i
+		} else {
+			file1 = append(file1, file)
+			file1_n = append(file1_n, number)
+			i, _ := strconv.Atoi(number)
+			file1_nn += i
 		}
-		file1 = append(file1, file)
-		file1_n = append(file1_n, number)
-		i, _ := strconv.Atoi(number)
-		file1_nn += i
 	}
 
-	i := file1_nn / len(file1_n)
+	update, _ := db.Prepare("update fileIP set name = ? where name=?;")
+	i := (file1_nn + file2_nn) / (len(file1_n) + len(file2_n))
 	for o, v := range file1_n {
 		n, _ := strconv.Atoi(v)
 		if n < i {
 			file1_m = append(file1_m, o)
 		}
 	}
-	i = file2_nn / len(file2_n)
+	for _, v := range file1_m {
+		update.Exec("2/"+file1[v], file1[v])
+		moveFile(fileHost, file1[v], fileHost_b)
+	}
+
 	for o, v := range file2_n {
 		n, _ := strconv.Atoi(v)
-		if n < i {
+		if n > i {
 			file2_m = append(file2_m, o)
 		}
 	}
-
-	for _, v := range file1_m {
-		moveFile(fileHost, file1[v], fileHost_b)
-	}
 	for _, v := range file2_m {
+		update.Exec(file2[v], "2/"+file2[v])
+		fmt.Println(file2[v])
 		moveFile(fileHost_b, file2[v], fileHost)
 	}
+	fmt.Println(i)
+	fmt.Println(file2_n)
+
+	fmt.Println(time.Now().String() + ": bf done")
+	db.Close()
 
 }
+
 
 //移动文件
 func moveFile(f string, p string, t string) {
