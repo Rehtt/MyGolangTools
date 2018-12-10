@@ -130,14 +130,20 @@ func showDir(path string, dir string, db *sql.DB, writer http.ResponseWriter, re
 
 	}
 
-	fmt.Fprint(writer, "<html><body>")
+	fmt.Fprint(writer, "<html>" +
+		"<head>" +
+		"<style type=\"text/css\">a {text-decoration: none}</style>" +
+		"</head>" +
+		"<body>" +
+		"<table>")
 	for _, n := range dirss {
-		fmt.Fprint(writer, "<img src=\"/images/folder.png\"><a href='/file?file="+file2+dir+n+"/'>"+n+"<br/>")
+		fmt.Fprint(writer, "<tr><td><img src=\"/images/folder.png\"></td><td><a href='/file?file="+file2+dir+n+"/'>"+n+"</a></td></tr>")
 	}
 	for i, n := range file {
-		fmt.Fprint(writer, "<img src=\"/images/document.png\"><a href='/file?file="+file2+dir+n+"'>"+n+"</a>下载数次："+downNumber[i]+"<br/>")
+		fmt.Fprint(writer, "<tr><td><img src=\"/images/document.png\"></td><td><a href='/file?file="+file2+dir+n+"'>"+n+"</a>\t下载数次："+downNumber[i]+"</td></tr>")
 	}
-	fmt.Fprint(writer, "</body></html>")
+	fmt.Fprint(writer, "</table></body></html>")
+
 
 	res, _ := db.Query("select name from fileIP")
 	for res.Next() {
