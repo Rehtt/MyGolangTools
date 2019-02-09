@@ -44,11 +44,16 @@ func GetVideoUrl(url string) []string {
 
 	txt, err := Get(url, nil, h)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+		return
 	}
 	defer txt.Body.Close()
 	res, _ := ioutil.ReadAll(txt.Body)
 	matched := regexp.MustCompile("<script>window(.*?)</script>")
+	if !matched.MatchString(string(res)) {
+		log.Println(err)
+		return 
+	}
 	jso := matched.FindString(string(res))
 
 	sp1 := strings.Split(jso, "NEPTUNE_IS_MY_WAIFU__=")[1]
