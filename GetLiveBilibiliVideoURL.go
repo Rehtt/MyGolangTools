@@ -30,6 +30,13 @@ func main() {
 返回视频地址数组 
  */
 func GetVideoUrl(url string) []string {
+	h5:=strings.Split(url,"/")
+	for i,v:=range h5{
+		if v=="h5" {
+			url="https://live.bilibili.com/"+h5[i+1]
+			break
+		}
+	}
 	h := make(map[string]string)
 	h["Host"] = "live.bilibili.com"
 	h["Accept"] = "text/html"
