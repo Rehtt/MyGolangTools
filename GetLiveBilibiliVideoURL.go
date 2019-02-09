@@ -30,10 +30,10 @@ func main() {
 返回视频地址数组 
  */
 func GetVideoUrl(url string) []string {
-	h5:=strings.Split(url,"/")
-	for i,v:=range h5{
-		if v=="h5" {
-			url="https://live.bilibili.com/"+h5[i+1]
+	h5 := strings.Split(url, "/")
+	for i, v := range h5 {
+		if v == "h5" {
+			url = "https://live.bilibili.com/" + h5[i+1]
 			break
 		}
 	}
@@ -42,7 +42,7 @@ func GetVideoUrl(url string) []string {
 	h["Accept"] = "text/html"
 	h["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763"
 
-	txt, err := Get(url,nil, h)
+	txt, err := Get(url, nil, h)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -57,11 +57,14 @@ func GetVideoUrl(url string) []string {
 	var jsonn json1
 	json.Unmarshal([]byte(sp2), &jsonn)
 	var videoUrl []string
-	for _,v:=range jsonn.PLAYURLRES.DATA.DURL {
-		videoUrl=append(videoUrl, v.URL)
+	for _, v := range jsonn.PLAYURLRES.DATA.DURL {
+		httpUrl := "http://" + strings.Split(v.URL, "://")[1]
+		videoUrl = append(videoUrl, httpUrl)
 	}
+	//fmt.Println(jsonn.ROOMINITRES.DATA.ROOM_ID)
 	return videoUrl
 }
+
 func Get(url string, params map[string]string, headers map[string]string) (*http.Response, error) {
 	//new request
 	req, err := http.NewRequest("GET", url, nil)
