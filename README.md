@@ -16,3 +16,9 @@
 ## GetLiveBilibiliVideoURL
 
 获取哔哩哔哩直播视频的地址
+
+### shell ffmpeg自动侦测下载
+指定时间循环侦测地址并自动下载
+
+将live.sh与live.go编译的文件放在同一目录
+<code>./live.sh "直播地址"</code>
