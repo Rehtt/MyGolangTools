@@ -23,3 +23,12 @@
 
 将live.sh与live.go编译的文件放在同一目录
 <code>./live.sh "直播地址"</code>
+
+## SimpleFileServer
+简单的一个文件服务器。
+默认监听地址：0.0.0.0:8080
+<pre>
+-host 监听地址
+-port 监听端口
+-path 文件地址
+</pre>
